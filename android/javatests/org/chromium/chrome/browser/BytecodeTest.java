@@ -79,7 +79,6 @@ import org.chromium.chrome.browser.data_sharing.DataSharingTabManager;
 import org.chromium.chrome.browser.feed.FeedActionDelegate;
 import org.chromium.chrome.browser.feed.FeedSurfaceCoordinator;
 import org.chromium.chrome.browser.feed.SnapScrollHelper;
-import org.chromium.chrome.browser.feed.sort_ui.FeedOptionsCoordinator;
 import org.chromium.chrome.browser.feed.webfeed.WebFeedSnackbarController;
 import org.chromium.chrome.browser.findinpage.FindToolbarManager;
 import org.chromium.chrome.browser.fullscreen.BrowserControlsManager;
@@ -1705,11 +1704,7 @@ public class BytecodeTest {
                         FeedSurfaceCoordinator.class,
                         Context.class,
                         SnapScrollHelper.class,
-                        PropertyModel.class,
-                        int.class,
                         FeedActionDelegate.class,
-                        FeedOptionsCoordinator.class,
-                        UiConfig.class,
                         Profile.class));
         Assert.assertTrue(
                 constructorsMatch(
