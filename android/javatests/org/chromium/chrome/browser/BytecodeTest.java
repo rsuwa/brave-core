@@ -1511,6 +1511,7 @@ public class BytecodeTest {
                         BottomControlsStacker.class,
                         BrowserStateBrowserControlsVisibilityDelegate.class,
                         FullscreenManager.class,
+                        int.class,
                         TabObscuringHandler.class,
                         int.class,
                         int.class,
@@ -2347,7 +2348,7 @@ public class BytecodeTest {
         Assert.assertTrue(
                 fieldExists(
                         "org/chromium/chrome/browser/toolbar/ToolbarManager",
-                        "mBottomControlsCoordinatorSupplier"));
+                        "mTabGroupUiBottomControlsCoordinatorSupplier"));
         Assert.assertTrue(
                 fieldExists(
                         "org/chromium/chrome/browser/toolbar/ToolbarManager",
