@@ -1431,6 +1431,7 @@ public class BytecodeTest {
                         OneshotSupplier.class,
                         MonotonicObservableSupplier.class,
                         PageZoomManager.class,
+                        OneshotSupplier.class,
                         OpenInAppMenuItemProvider.class));
         Assert.assertTrue(
                 constructorsMatch(
