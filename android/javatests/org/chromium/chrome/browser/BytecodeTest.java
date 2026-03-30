@@ -1494,7 +1494,6 @@ public class BytecodeTest {
                         MonotonicObservableSupplier.class,
                         DesktopWindowStateManager.class,
                         TokenHolder.class,
-                        MultiInstanceManager.class,
                         MonotonicObservableSupplier.class,
                         MenuButtonCoordinator.VisibilityDelegate.class,
                         TopControlsStacker.class,
@@ -1582,8 +1581,7 @@ public class BytecodeTest {
                         OneshotSupplier.class,
                         MonotonicObservableSupplier.class,
                         TopInsetProvider.class,
-                        StartupMetricsTracker.class,
-                        MultiInstanceManager.class));
+                        StartupMetricsTracker.class));
         Assert.assertTrue(
                 constructorsMatch(
                         "org/chromium/chrome/browser/ntp/IncognitoNewTabPage",
@@ -1801,7 +1799,6 @@ public class BytecodeTest {
                         boolean.class,
                         PageZoomManager.class,
                         Function.class,
-                        MultiInstanceManager.class,
                         SnackbarManager.class,
                         View.class,
                         OmniboxChipManager.class));
@@ -1829,7 +1826,6 @@ public class BytecodeTest {
                         Supplier.class,
                         PageZoomIndicatorCoordinator.class,
                         FuseboxCoordinator.class,
-                        MultiInstanceManager.class,
                         LocationBarEmbedder.class,
                         OmniboxChipManager.class));
         Assert.assertTrue(
