@@ -1958,7 +1958,6 @@ public class BytecodeTest {
                         MonotonicObservableSupplier.class,
                         AppMenuBlocker.class,
                         BooleanSupplier.class,
-                        BooleanSupplier.class,
                         Supplier.class,
                         FullscreenManager.class,
                         Supplier.class,
