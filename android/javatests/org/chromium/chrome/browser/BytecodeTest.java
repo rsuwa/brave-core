@@ -1667,6 +1667,7 @@ public class BytecodeTest {
                         BrowserControlsVisibilityManager.class,
                         Supplier.class,
                         MonotonicObservableSupplier.class,
+                        OneshotSupplier.class,
                         SigninAndHistorySyncActivityLauncher.class,
                         WindowAndroid.class,
                         ActivityResultTracker.class,
