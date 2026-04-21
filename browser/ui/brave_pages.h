@@ -10,6 +10,7 @@
 
 #include "brave/components/ai_chat/core/common/buildflags/buildflags.h"
 #include "brave/components/brave_talk/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 
 class Browser;
 
@@ -18,12 +19,14 @@ namespace brave {
 void ShowBraveAdblock(Browser* browser);
 void ShowWebcompatReporter(Browser* browser);
 void ShowBraveRewards(Browser* browser);
+#if BUILDFLAG(ENABLE_BRAVE_WALLET)
 void ShowBraveWallet(Browser* browser);
 void ShowBraveWalletOnboarding(Browser* browser);
 void ShowBraveWalletAccountCreation(Browser* browser,
                                     std::string_view coin_name);
-void ShowExtensionSettings(Browser* browser);
 void ShowWalletSettings(Browser* browser);
+#endif
+void ShowExtensionSettings(Browser* browser);
 void ShowSync(Browser* browser);
 void ShowBraveNewsConfigure(Browser* browser);
 void ShowShortcutsPage(Browser* browser);

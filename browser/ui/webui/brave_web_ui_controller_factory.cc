@@ -72,6 +72,7 @@
 
 #if BUILDFLAG(ENABLE_BRAVE_WALLET)
 #include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
+#include "brave/components/brave_wallet/common/web_ui_constants.h"
 #if !BUILDFLAG(IS_ANDROID)
 #include "brave/browser/ui/webui/brave_wallet/wallet_page_ui.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"

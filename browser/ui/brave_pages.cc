@@ -10,6 +10,7 @@
 #include "base/strings/strcat.h"
 #include "brave/browser/ui/webui/webcompat_reporter/webcompat_reporter_dialog.h"
 #include "brave/components/brave_talk/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/constants/webui_url_constants.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_navigator_params.h"
@@ -24,6 +25,10 @@
 
 #if BUILDFLAG(ENABLE_BRAVE_TALK)
 #include "brave/components/sidebar/browser/constants.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_WALLET)
+#include "brave/components/brave_wallet/common/web_ui_constants.h"
 #endif
 
 namespace brave {
@@ -76,6 +81,7 @@ void ShowWebcompatReporter(Browser* browser) {
       web_contents, webcompat_reporter::UISource::kAppMenu);
 }
 
+#if BUILDFLAG(ENABLE_BRAVE_WALLET)
 void ShowBraveWallet(Browser* browser) {
   ShowSingletonTabOverwritingNTP(browser, GURL(kBraveUIWalletURL));
 }
@@ -91,12 +97,13 @@ void ShowBraveWalletAccountCreation(Browser* browser,
       GURL(base::StrCat({kBraveUIWalletAccountCreationURL, coin_name})));
 }
 
-void ShowExtensionSettings(Browser* browser) {
-  ShowSingletonTabOverwritingNTP(browser, GURL(kExtensionSettingsURL));
-}
-
 void ShowWalletSettings(Browser* browser) {
   ShowSingletonTabOverwritingNTP(browser, GURL(kWalletSettingsURL));
+}
+#endif
+
+void ShowExtensionSettings(Browser* browser) {
+  ShowSingletonTabOverwritingNTP(browser, GURL(kExtensionSettingsURL));
 }
 
 void ShowAppsPage(Browser* browser) {
