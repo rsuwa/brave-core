@@ -1264,6 +1264,10 @@ void KeyringService::CreateKeyrings(const KeyringSeed& keyring_seed) {
         base::span(keyring_seed.seed).first<kPolkadotSeedSize>();
     polkadot_mainnet_keyring_ = std::make_unique<PolkadotKeyring>(
         polkadot_seed, KeyringId::kPolkadotMainnet, is_address_allowed);
+  }
+  if (IsKeyringEnabled(KeyringId::kPolkadotTestnet)) {
+    auto polkadot_seed =
+        base::span(keyring_seed.seed).first<kPolkadotSeedSize>();
     polkadot_testnet_keyring_ = std::make_unique<PolkadotKeyring>(
         polkadot_seed, KeyringId::kPolkadotTestnet, is_address_allowed);
   }
@@ -1860,7 +1864,7 @@ mojom::AccountInfoPtr KeyringService::ImportPolkadotAccountSync(
     const std::string& password,
     const std::string& network) {
   if (account_name.empty() || json_export.empty() || password.empty() ||
-      IsLockedSync() || !IsPolkadotNetwork(network)) {
+      IsLockedSync() || !IsPolkadotRelayNetwork(network)) {
     return nullptr;
   }
   CHECK(encryptor_);
@@ -2166,7 +2170,6 @@ std::optional<std::string> KeyringService::AddHDAccountForKeyringInternal(
   if (auto* keyring = GetKeyring<PolkadotKeyring>(keyring_id)) {
     return keyring->AddNewHDAccount(index);
   }
-
   return std::nullopt;
 }
 
