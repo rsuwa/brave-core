@@ -21,6 +21,7 @@
 #include "services/metrics/public/cpp/ukm_source_id.h"
 #include "third_party/blink/public/mojom/loader/referrer.mojom.h"
 
+class BraveBluetoothDelegate;
 class PrefChangeRegistrar;
 class BraveHidDelegate;
 
@@ -91,11 +92,6 @@ class BraveContentBrowserClient : public ChromeContentBrowserClient {
   brave_shields::mojom::ShieldsSettingsPtr WorkerGetBraveShieldSettings(
       const GURL& url,
       content::BrowserContext* browser_context) override;
-
-  content::ContentBrowserClient::AllowWebBluetoothResult AllowWebBluetooth(
-      content::BrowserContext* browser_context,
-      const url::Origin& requesting_origin,
-      const url::Origin& embedding_origin) override;
 
   void RegisterBrowserInterfaceBindersForFrame(
       content::RenderFrameHost* render_frame_host,
@@ -201,6 +197,8 @@ class BraveContentBrowserClient : public ChromeContentBrowserClient {
   content::HidDelegate* GetHidDelegate() override;
 #endif
 
+  content::BluetoothDelegate* GetBluetoothDelegate() override;
+
  private:
   void OnAllowGoogleAuthChanged();
 
@@ -220,6 +218,7 @@ class BraveContentBrowserClient : public ChromeContentBrowserClient {
 #if !BUILDFLAG(IS_ANDROID)
   std::unique_ptr<BraveHidDelegate> brave_hid_delegate_;
 #endif
+  std::unique_ptr<BraveBluetoothDelegate> bluetooth_delegate_;
 };
 
 #endif  // BRAVE_BROWSER_BRAVE_CONTENT_BROWSER_CLIENT_H_
