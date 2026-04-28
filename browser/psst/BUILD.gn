@@ -19,6 +19,8 @@ static_library("psst") {
     "psst_ui_desktop_presenter.cc",
   ]
 
+  public_deps = [ "//ui/web_dialogs" ]
+
   deps = [
     "//base",
     "//brave/app:brave_generated_resources_grit",
@@ -29,6 +31,8 @@ static_library("psst") {
     "//chrome/browser/content_settings:content_settings_factory",
     "//chrome/browser/infobars",
     "//chrome/browser/profiles",
+    "//chrome/browser/ui/dialogs",
+    "//chrome/browser/ui/webui",
     "//components/content_settings/core/browser",
     "//components/infobars/core",
     "//components/permissions",
@@ -63,6 +67,7 @@ source_set("browser_tests") {
 
   deps = [
     "//base",
+    "//brave/browser/ui/webui/psst",
     "//brave/components/brave_shields/content/browser",
     "//brave/components/cosmetic_filters/browser",
     "//brave/components/psst/browser/content",

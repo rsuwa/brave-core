@@ -13,6 +13,7 @@
 #include "base/test/bind.h"
 #include "base/test/scoped_feature_list.h"
 #include "base/test/test_future.h"
+#include "brave/browser/ui/webui/psst/brave_psst_dialog_ui.h"
 #include "brave/components/psst/browser/core/psst_rule.h"
 #include "brave/components/psst/browser/core/psst_rule_registry.h"
 #include "brave/components/psst/buildflags/buildflags.h"
@@ -25,15 +26,19 @@
 #include "components/infobars/content/content_infobar_manager.h"
 #include "components/infobars/core/confirm_infobar_delegate.h"
 #include "components/infobars/core/infobar.h"
+#include "content/public/browser/web_contents.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
 #include "net/dns/mock_host_resolver.h"
 #include "net/test/embedded_test_server/embedded_test_server.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "url/gurl.h"
 
 namespace psst {
 
 namespace {
+constexpr char kExpectedSchema[] = "chrome";
+constexpr char kExpectedHost[] = "psst";
 
 class InfobarObserver : public infobars::InfoBarManager::Observer {
  public:
@@ -159,6 +164,56 @@ class PsstTabWebContentsObserverBrowserTest : public PlatformBrowserTest {
     return chrome_test_utils::GetActiveWebContents(this);
   }
 
+  content::WebContents* WaitForAndGetDialogWebContents(
+      content::CreateAndLoadWebContentsObserver& new_web_contents_observer) {
+    int iterations_count = 5;
+    GURL current_url;
+    content::WebContents* dialog_wc = nullptr;
+    do {
+      if (--iterations_count <= 0) {
+        break;
+      }
+      dialog_wc = new_web_contents_observer.Wait();
+      if (dialog_wc) {
+        current_url = dialog_wc->GetLastCommittedURL();
+      }
+    } while (dialog_wc && (!current_url.SchemeIs(kExpectedSchema) ||
+                           current_url.host() != kExpectedHost));
+    return dialog_wc;
+  }
+
+  bool AcceptModalDialog(content::WebContents* dialog_wc,
+                         const std::string& site_name,
+                         const std::vector<std::string>& perform_for_uids) {
+    if (!dialog_wc) {
+      return false;
+    }
+
+    auto* dialog_ui =
+        dialog_wc->GetWebUI()->GetController()->GetAs<BravePsstDialogUI>();
+    if (!dialog_ui) {
+      return false;
+    }
+
+    if (dialog_ui->psst_consent_handler_) {
+      dialog_ui->psst_consent_handler_->PerformPrivacyTuning(perform_for_uids);
+      return true;
+    }
+
+    return false;
+  }
+
+  bool CloseModalDialog(content::WebContents* dialog_wc) {
+    auto* dialog_ui =
+        dialog_wc->GetWebUI()->GetController()->GetAs<BravePsstDialogUI>();
+    if (!dialog_ui) {
+      return false;
+    }
+
+    dialog_ui->Close();
+    return true;
+  }
+
  protected:
   base::ScopedTempDir component_dir_;
   net::EmbeddedTestServer https_server_;
@@ -174,6 +229,7 @@ IN_PROC_BROWSER_TEST_F(PsstTabWebContentsObserverBrowserTest,
 
   InfobarObserver infobar_observer(
       manager, infobars::InfoBarDelegate::BRAVE_PSST_INFOBAR_DELEGATE);
+  content::CreateAndLoadWebContentsObserver new_web_contents_observer;
 
   std::u16string expected_title(u"a_user-a_policy");
   content::TitleWatcher watcher(web_contents(), expected_title);
@@ -187,7 +243,16 @@ IN_PROC_BROWSER_TEST_F(PsstTabWebContentsObserverBrowserTest,
             infobars::InfoBarDelegate::BRAVE_PSST_INFOBAR_DELEGATE);
   confirm_delegate->Accept();
 
+  auto* dialog_wc = WaitForAndGetDialogWebContents(new_web_contents_observer);
+  ASSERT_TRUE(dialog_wc);
+
+  const std::vector<std::string> perform_uids = {"1", "2"};
+  // Accept the consent dialog to continue the flow and apply PSST settings
+  ASSERT_TRUE(AcceptModalDialog(
+      dialog_wc, url::Origin::Create(url).GetURL().spec(), perform_uids));
+
   EXPECT_EQ(expected_title, watcher.WaitAndGetTitle());
+  ASSERT_TRUE(CloseModalDialog(dialog_wc));
   EXPECT_TRUE(GetPrefs()->GetBoolean(prefs::kPsstEnabled));
 }
 
