@@ -5,6 +5,7 @@
 
 #include "brave/browser/ui/views/tabs/brave_tab.h"
 
+#include "base/test/scoped_feature_list.h"
 #include "brave/browser/ui/tabs/brave_tab_prefs.h"
 #include "brave/browser/ui/views/tabs/brave_tab_strip_layout_helper.h"
 #include "brave/components/tabs/public/tree_tab_node.h"
@@ -26,6 +27,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/skia/include/core/SkPath.h"
 #include "third_party/skia/include/core/SkRegion.h"
+#include "ui/gfx/favicon_size.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/geometry/skia_conversions.h"
@@ -172,6 +174,47 @@ TEST_F(BraveTabTest, TabStyleTest) {
             tab_style->GetStandardWidth(/*is_split*/ false));
   EXPECT_EQ(tab_style->GetMinimumActiveWidth(/*is_split*/ true),
             tab_style->GetMinimumActiveWidth(/*is_split*/ false));
+}
+
+// https://github.com/brave/brave-browser/issues/54972 — pinned tab width must
+// stay consistent with painting: the classic tab path insets the shape by
+// GetBottomCornerRadius() on each side, so the layout width must leave a usable
+// content region (including a favicon) after that inset.
+
+// With kBraveHorizontalTabsUpdate off, GetPinnedWidth() and GetContentsInsets()
+// follow Chromium: pinned width is kTabPinnedContentWidth plus the horizontal
+// content insets (see TabStyle::GetPinnedWidth() in tab_style.cc).
+TEST_F(BraveTabTest, PinnedTabWidthDelegatesUpstreamWhenHorizontalUpdateOff) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(tabs::kBraveHorizontalTabsUpdate);
+
+  const auto* tab_style = TabStyle::Get();
+
+  constexpr int kTabPinnedContentWidth = 24;
+  const auto insets = tab_style->GetContentsInsets();
+  const int expected_unsplit =
+      kTabPinnedContentWidth + insets.left() + insets.right();
+  EXPECT_EQ(expected_unsplit, tab_style->GetPinnedWidth(/*is_split=*/false));
+
+  EXPECT_EQ(expected_unsplit - tab_style->GetTabOverlap() / 2,
+            tab_style->GetPinnedWidth(/*is_split=*/true));
+
+  EXPECT_GE(tab_style->GetPinnedWidth(/*is_split=*/false) -
+                2 * tab_style->GetBottomCornerRadius(),
+            gfx::kFaviconSize);
+}
+
+// With kBraveHorizontalTabsUpdate on, Brave uses its horizontal tab layout for
+// pinned width (see BraveTabStyle::GetPinnedWidth in tab_style.cc).
+TEST_F(BraveTabTest, PinnedTabWidthMatchesBraveLayoutWhenHorizontalUpdateOn) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(tabs::kBraveHorizontalTabsUpdate);
+
+  const auto* tab_style = TabStyle::Get();
+  const int expected =
+      tabs::GetHorizontalTabHeight() + tabs::kHorizontalTabInset * 2;
+  EXPECT_EQ(expected, tab_style->GetPinnedWidth(/*is_split=*/false));
+  EXPECT_EQ(expected, tab_style->GetPinnedWidth(/*is_split=*/true));
 }
 
 TEST_F(BraveTabTest, ShouldAlwaysHideTabCloseButton) {
