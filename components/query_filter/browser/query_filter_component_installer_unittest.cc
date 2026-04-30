@@ -24,7 +24,6 @@
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
-namespace {
 // Sample query filter JSON which would be written to a file during setup
 // and then read by the query filter data to prepopulate the default rules.
 constexpr char kSampleQueryFilterJson[] = R"json(
@@ -45,8 +44,6 @@ constexpr char kSampleQueryFilterJson[] = R"json(
     }
   ]
   )json";
-
-}  // namespace
 
 class QueryFilterComponentInstallerTest : public testing::Test {
  public:
@@ -94,6 +91,29 @@ class QueryFilterComponentInstallerTest : public testing::Test {
   base::test::TaskEnvironment task_environment_{
       base::test::TaskEnvironment::MainThreadType::DEFAULT,
       base::test::TaskEnvironment::ThreadPoolExecutionMode::DEFAULT};
+};
+
+class ScopedFileLoadedCallbackForTesting {
+ public:
+  ScopedFileLoadedCallbackForTesting(
+      component_updater::QueryFilterComponentInstallerPolicy& policy,
+      base::OnceClosure callback)
+      : policy_(policy), callback_(std::move(callback)) {
+    policy_->SetOnFileLoadedCallbackForTesting(&callback_);
+  }
+
+  ~ScopedFileLoadedCallbackForTesting() {
+    policy_->SetOnFileLoadedCallbackForTesting(nullptr);
+  }
+
+  ScopedFileLoadedCallbackForTesting(
+      const ScopedFileLoadedCallbackForTesting&) = delete;
+  ScopedFileLoadedCallbackForTesting& operator=(
+      const ScopedFileLoadedCallbackForTesting&) = delete;
+
+ private:
+  raw_ref<component_updater::QueryFilterComponentInstallerPolicy> policy_;
+  base::OnceClosure callback_;
 };
 
 // Tests covering disabled feature flag state.
@@ -166,18 +186,18 @@ TEST_F(QueryFilterComponentInstallerTest, TestComponentReady) {
 
   // Initiate component ready which would load the json file and populate the
   // query filter data.
+  base::test::TestFuture<void> future;
   component_updater::QueryFilterComponentInstallerPolicy policy;
+  ScopedFileLoadedCallbackForTesting scoped(policy, future.GetCallback());
   policy.ComponentReady(version, GetInstallDirectoryPath(), base::DictValue());
+  ASSERT_TRUE(future.Wait());
 
-  // Verify the version and the rules are updated after the component is ready
-  EXPECT_TRUE(base::test::RunUntil(
-      [&]() { return GetQueryFilterVersion() == "1.0.0"; }));
+  // Verify the version and the rules are updated after the component is ready.
+  EXPECT_EQ("1.0.0", GetQueryFilterVersion());
   const auto& new_rules = GetQueryFilterRules();
   EXPECT_EQ(2U, new_rules.size());
 }
 
-// TODO(https://github.com/brave/brave-browser/issues/10188): Update this test
-// to pass a callback and remove the RunUntil.
 TEST_F(QueryFilterComponentInstallerTest,
        TestComponentReady_WithBadJson_DoesNotUpdateVersion) {
   // Test setup
@@ -193,14 +213,14 @@ TEST_F(QueryFilterComponentInstallerTest,
 
   // Initiate component ready which would load the json file and populate the
   // query filter data.
+  base::test::TestFuture<void> future;
   component_updater::QueryFilterComponentInstallerPolicy policy;
+  ScopedFileLoadedCallbackForTesting scoped(policy, future.GetCallback());
   policy.ComponentReady(version, GetInstallDirectoryPath(), base::DictValue());
+  ASSERT_TRUE(future.Wait());
 
-  // Verify the version and the rules are not updated after the component is
-  // ready as the parsing failed. This check is weak as the RunUntil may exit
-  // before the ComponentReady finished the async task inside.
-  EXPECT_TRUE(
-      base::test::RunUntil([&]() { return GetQueryFilterVersion() == ""; }));
+  // Verify neither the version not the rules are updated.
+  EXPECT_EQ("", GetQueryFilterVersion());
   const auto& new_rules = GetQueryFilterRules();
   EXPECT_TRUE(new_rules.empty());
 }
