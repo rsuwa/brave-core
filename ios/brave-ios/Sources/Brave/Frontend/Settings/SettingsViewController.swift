@@ -82,7 +82,8 @@ class SettingsViewController: TableViewController, BraveAccountAuthenticationObs
   private let ipfsAPI: IpfsAPI
   private let altIconsModel = AltIconsModel()
 
-  private lazy var braveAccountAuthentication: any BraveAccountAuthentication = {
+  private lazy var braveAccountAuthentication: (any BraveAccountAuthentication)? = {
+    guard IsBraveAccountEnabled() else { return nil }
     return BraveAccount.AuthenticationProvider.authentication(for: braveCore.profile)
   }()
 
@@ -197,7 +198,7 @@ class SettingsViewController: TableViewController, BraveAccountAuthenticationObs
       }
       .store(in: &cancellables)
 
-    braveAccountAuthentication.addObserver(self)
+    braveAccountAuthentication?.addObserver(self)
   }
 
   override func viewWillAppear(_ animated: Bool) {
@@ -417,7 +418,7 @@ class SettingsViewController: TableViewController, BraveAccountAuthenticationObs
   }
 
   private var braveAccountSection: Static.Section? {
-    guard let braveAccountState else { return nil }
+    guard let braveAccountState, let braveAccountAuthentication else { return nil }
 
     switch braveAccountState.tag {
     case .loggedIn:
@@ -438,7 +439,7 @@ class SettingsViewController: TableViewController, BraveAccountAuthenticationObs
           ),
           Row(
             text: L10nUtils.string(messageId: .SETTINGS_BRAVE_ACCOUNT_LOG_OUT_BUTTON_LABEL),
-            selection: { [unowned self] in braveAccountAuthentication.logOut() },
+            selection: { braveAccountAuthentication.logOut() },
             cellClass: BraveAccountIconCell.self,
             context: [
               BraveAccountIconCell.textColor: view.tintColor
@@ -515,7 +516,7 @@ class SettingsViewController: TableViewController, BraveAccountAuthenticationObs
             text: L10nUtils.string(
               messageId: .SETTINGS_BRAVE_ACCOUNT_CANCEL_REGISTRATION_BUTTON_LABEL
             ),
-            selection: { [unowned self] in braveAccountAuthentication.cancelRegistration() },
+            selection: { braveAccountAuthentication.cancelRegistration() },
             cellClass: BraveAccountIconCell.self,
             context: [
               BraveAccountIconCell.textColor: UIColor(braveSystemName: .systemfeedbackErrorText)
