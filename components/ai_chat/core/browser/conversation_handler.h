@@ -433,7 +433,7 @@ class ConversationHandler : public mojom::ConversationHandler,
   void MaybeSwitchToVisionModel(
       const std::optional<std::vector<mojom::UploadedFilePtr>>& uploaded_files);
 
-  std::unique_ptr<AssociatedContentManager> associated_content_manager_;
+  raw_ptr<AssociatedContentManager> associated_content_manager_;
 
   std::string model_key_;
   // Chat conversation entries
