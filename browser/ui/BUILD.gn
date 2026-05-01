@@ -296,6 +296,7 @@ source_set("ui") {
       "side_panel/ai_chat/ai_chat_side_panel_utils.h",
       "startup/brave_startup_tab_provider_impl.cc",
       "startup/brave_startup_tab_provider_impl.h",
+      "tabs/brave_compact_horizontal_tabs_layout.h",
       "tabs/brave_tab_color_mixer.cc",
       "tabs/brave_tab_color_mixer.h",
       "tabs/brave_tab_menu_model.cc",
@@ -759,6 +760,9 @@ source_set("ui") {
       sources += [
         "views/frame/brave_browser_frame_view_win.cc",
         "views/frame/brave_browser_frame_view_win.h",
+        "views/frame/brave_win_caption_layout.cc",
+
+        # "views/frame/brave_win_caption_layout.h",  # Removed to prevent circular dependency per project rules.
       ]
 
       deps += [ "//chrome/browser:titlebar_config" ]

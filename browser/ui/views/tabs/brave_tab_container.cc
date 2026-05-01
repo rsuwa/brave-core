@@ -19,6 +19,7 @@
 #include "base/feature_list.h"
 #include "base/notimplemented.h"
 #include "brave/browser/ui/color/brave_color_id.h"
+#include "brave/browser/ui/tabs/brave_compact_horizontal_tabs_layout.h"
 #include "brave/browser/ui/tabs/brave_tab_prefs.h"
 #include "brave/browser/ui/views/frame/brave_browser_view.h"
 #include "brave/browser/ui/views/frame/vertical_tabs/vertical_tab_strip_widget_delegate_view.h"
@@ -495,7 +496,11 @@ void BraveTabContainer::PaintBoundingBoxForSplitTab(
         tabs::kHorizontalTabInset));
   }
 
-  constexpr auto kRadius = 12.f;  // same value with --leo-radius-l
+  const float kRadius =
+      (!is_vertical_tab && tabs::ShouldUseCompactHorizontalTabsForNonTouchUI())
+          ? tabs::compact_horizontal_tabs_layout::
+                kHorizontalSplitViewTileCornerRadiusDip
+          : 12.f;  // default matches --leo-radius-l
 
   auto* cp = GetColorProvider();
   DCHECK(cp);

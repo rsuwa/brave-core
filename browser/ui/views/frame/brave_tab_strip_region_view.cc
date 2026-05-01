@@ -7,6 +7,7 @@
 
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
+#include "brave/browser/ui/tabs/brave_compact_horizontal_tabs_layout.h"
 #include "brave/browser/ui/tabs/brave_tab_prefs.h"
 #include "brave/browser/ui/views/tabs/brave_tab_container.h"
 #include "brave/browser/ui/views/tabs/brave_tab_strip.h"
@@ -306,6 +307,14 @@ void BraveHorizontalTabStripRegionView::Layout(PassKey) {
     // constants (same family as toolbar spacing). That can overlap the combo's
     // flex slot; we paint NTB above the combo in GetChildrenInZOrder so it
     // stays clickable.
+    //
+    // We deliberately leave the NTB's y at the upstream-positioned value
+    // (0 in `HorizontalTabStripRegionView::Layout`) when compact horizontal
+    // tabs is not active. This preserves upstream behaviour — and keeps
+    // `HorizontalTabStripRegionViewTest
+    //  .ChildrenAreFlushWithTopOfTabStripRegionView` green — while still
+    // letting compact mode nudge the button up to stay centred against the
+    // shorter tab pills.
     if (new_tab_button_ && tab_scroll_next_button_ &&
         tab_scroll_next_button_->GetVisible()) {
       const gfx::Size button_size = new_tab_button_->GetPreferredSize();
@@ -313,6 +322,10 @@ void BraveHorizontalTabStripRegionView::Layout(PassKey) {
                     GetLayoutConstant(LayoutConstant::kTabStripPadding) +
                     GetLayoutConstant(LayoutConstant::kToolbarDividerSpacing);
       new_tab_button_->SetBoundsRect(gfx::Rect(gfx::Point(x, 0), button_size));
+    }
+    if (new_tab_button_ &&
+        tabs::ShouldUseCompactHorizontalTabsForNonTouchUI()) {
+      new_tab_button_->SetY(tabs::GetHorizontalTabControlsDelta());
     }
     return;
   }
