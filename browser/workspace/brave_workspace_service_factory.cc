@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "brave/browser/workspace/brave_workspace_features.h"
 #include "brave/browser/workspace/brave_workspace_service.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_selections.h"
@@ -20,6 +21,9 @@ BraveWorkspaceServiceFactory* BraveWorkspaceServiceFactory::GetInstance() {
 // static
 BraveWorkspaceService* BraveWorkspaceServiceFactory::GetForProfile(
     Profile* profile) {
+  if (!features::IsBraveWorkspaceEnabled()) {
+    return nullptr;
+  }
   return static_cast<BraveWorkspaceService*>(
       GetInstance()->GetServiceForBrowserContext(profile, /*create=*/true));
 }
