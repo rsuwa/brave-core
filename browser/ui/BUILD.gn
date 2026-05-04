@@ -282,6 +282,8 @@ source_set("ui") {
       "brave_view_ids.h",
       "browser_commands.cc",
       "browser_commands.h",
+      "browser_workspace_commands.cc",
+      "browser_workspace_commands.h",
       "browser_dialogs.h",
       "content_settings/brave_autoplay_blocked_image_model.cc",
       "content_settings/brave_autoplay_blocked_image_model.h",

@@ -23,6 +23,7 @@
 #include "components/sessions/core/session_command.h"
 #include "components/sessions/core/session_types.h"
 
+class PrefService;
 class Profile;
 
 // Profile preference key — stores a dict keyed by sanitized workspace name.
@@ -131,7 +132,8 @@ class BraveWorkspaceService : public KeyedService {
   base::FilePath WorkspacesDir() const;
   base::FilePath WorkspaceDirForName(const std::string& name) const;
 
-  raw_ptr<Profile> profile_;
+  raw_ptr<PrefService> pref_service_;
+  const base::FilePath profile_path_;
 
   base::WeakPtrFactory<BraveWorkspaceService> weak_ptr_factory_{this};
 };

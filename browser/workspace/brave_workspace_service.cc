@@ -34,14 +34,13 @@ const char kWorkspaceModifiedAt[] = "modified-at";
 }  // namespace
 
 BraveWorkspaceService::BraveWorkspaceService(Profile* profile)
-    : profile_(profile) {}
+    : pref_service_(profile->GetPrefs()), profile_path_(profile->GetPath()) {}
 
 BraveWorkspaceService::~BraveWorkspaceService() = default;
 
 std::vector<WorkspaceInfo> BraveWorkspaceService::ListWorkspaces() const {
   std::vector<WorkspaceInfo> result;
-  const base::DictValue& all =
-      profile_->GetPrefs()->GetDict(kWorkspacesMetadataPref);
+  const base::DictValue& all = pref_service_->GetDict(kWorkspacesMetadataPref);
 
   for (const auto [key, value] : all) {
     const base::DictValue* entry = value.GetIfDict();
@@ -75,8 +74,8 @@ void BraveWorkspaceService::SaveWorkspaceMetadata(const std::string& name,
                                                   int window_count,
                                                   int tab_count,
                                                   base::Time modified_at) {
-  PrefService* prefs = profile_->GetPrefs();
-  base::DictValue updated = prefs->GetDict(kWorkspacesMetadataPref).Clone();
+  base::DictValue updated =
+      pref_service_->GetDict(kWorkspacesMetadataPref).Clone();
 
   base::DictValue entry;
   entry.Set(kWorkspaceName, name);
@@ -85,14 +84,14 @@ void BraveWorkspaceService::SaveWorkspaceMetadata(const std::string& name,
   entry.Set(kWorkspaceModifiedAt, modified_at.InSecondsFSinceUnixEpoch());
 
   updated.Set(ComputeUniqueKey(name), std::move(entry));
-  prefs->SetDict(kWorkspacesMetadataPref, std::move(updated));
+  pref_service_->SetDict(kWorkspacesMetadataPref, std::move(updated));
 }
 
 void BraveWorkspaceService::RemoveWorkspaceMetadata(const std::string& name) {
-  PrefService* prefs = profile_->GetPrefs();
-  base::DictValue updated = prefs->GetDict(kWorkspacesMetadataPref).Clone();
+  base::DictValue updated =
+      pref_service_->GetDict(kWorkspacesMetadataPref).Clone();
   updated.Remove(ComputeUniqueKey(name));
-  prefs->SetDict(kWorkspacesMetadataPref, std::move(updated));
+  pref_service_->SetDict(kWorkspacesMetadataPref, std::move(updated));
 }
 
 // static
@@ -185,13 +184,12 @@ std::string BraveWorkspaceService::SanitizeName(const std::string& name) {
 }
 
 base::FilePath BraveWorkspaceService::WorkspacesDir() const {
-  return profile_->GetPath().AppendASCII("workspaces");
+  return profile_path_.AppendASCII("workspaces");
 }
 
 std::string BraveWorkspaceService::ComputeUniqueKey(
     const std::string& name) const {
-  const base::DictValue& all =
-      profile_->GetPrefs()->GetDict(kWorkspacesMetadataPref);
+  const base::DictValue& all = pref_service_->GetDict(kWorkspacesMetadataPref);
   const std::string base_key = SanitizeName(name);
 
   // Returns true if |key| is free to use for |name|: either the slot is empty

@@ -25,6 +25,5 @@ static_library("workspace") {
   deps = [
     "//chrome/browser/profiles:profile",
     "//components/pref_registry",
-    "//third_party/abseil-cpp:absl",
   ]
 }
