@@ -115,6 +115,9 @@ class BraveWorkspaceService : public KeyedService {
 
   base::WeakPtr<BraveWorkspaceService> GetWeakPtr();
 
+  // KeyedService:
+  void Shutdown() override;
+
  private:
   static std::string SanitizeName(const std::string& name);
 

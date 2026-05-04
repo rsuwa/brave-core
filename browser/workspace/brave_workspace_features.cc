@@ -9,8 +9,4 @@ namespace features {
 
 BASE_FEATURE(kBraveWorkspace, base::FEATURE_DISABLED_BY_DEFAULT);
 
-bool IsBraveWorkspaceEnabled() {
-  return base::FeatureList::IsEnabled(kBraveWorkspace);
-}
-
 }  // namespace features

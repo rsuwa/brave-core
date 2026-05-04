@@ -261,7 +261,7 @@ void EnsureBrowserContextKeyedServiceFactoriesBuilt() {
 
   serp_metrics::SerpMetricsServiceFactory::GetInstance();
 
-  if (features::IsBraveWorkspaceEnabled()) {
+  if (base::FeatureList::IsEnabled(features::kBraveWorkspace)) {
     BraveWorkspaceServiceFactory::GetInstance();
   }
 }

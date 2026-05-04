@@ -11,7 +11,6 @@
 namespace features {
 
 BASE_DECLARE_FEATURE(kBraveWorkspace);
-bool IsBraveWorkspaceEnabled();
 
 }  // namespace features
 

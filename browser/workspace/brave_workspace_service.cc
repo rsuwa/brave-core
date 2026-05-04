@@ -157,6 +157,10 @@ base::WeakPtr<BraveWorkspaceService> BraveWorkspaceService::GetWeakPtr() {
   return weak_ptr_factory_.GetWeakPtr();
 }
 
+void BraveWorkspaceService::Shutdown() {
+  weak_ptr_factory_.InvalidateWeakPtrs();
+}
+
 // static
 std::string BraveWorkspaceService::SanitizeName(const std::string& name) {
   std::string sanitized;
