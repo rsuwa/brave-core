@@ -3,10 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#include "brave/browser/workspace/features.h"
+#include "brave/browser/ui/workspace/brave_workspace.h"
 
-namespace features {
-
-BASE_FEATURE(kBraveWorkspace, base::FEATURE_DISABLED_BY_DEFAULT);
-
-}  // namespace features
+WorkspaceInfo::WorkspaceInfo() = default;
+WorkspaceInfo::~WorkspaceInfo() = default;

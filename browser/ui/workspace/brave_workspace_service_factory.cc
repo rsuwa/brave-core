@@ -3,12 +3,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#include "brave/browser/workspace/brave_workspace_service_factory.h"
+#include "brave/browser/ui/workspace/brave_workspace_service_factory.h"
 
 #include <memory>
 
-#include "brave/browser/workspace/brave_workspace_service.h"
-#include "brave/browser/workspace/features.h"
+#include "brave/browser/ui/workspace/brave_workspace_service.h"
+#include "brave/browser/ui/workspace/features.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_selections.h"
 

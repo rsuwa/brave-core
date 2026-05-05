@@ -18,13 +18,12 @@
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/browser/ui/brave_pages.h"
 #include "brave/browser/ui/browser_commands.h"
-#include "brave/browser/ui/browser_workspace_commands.h"
 #include "brave/browser/ui/focus_mode/focus_mode_utils.h"
 #include "brave/browser/ui/sidebar/sidebar_utils.h"
-#include "brave/browser/workspace/brave_workspace.h"
-#include "brave/browser/workspace/brave_workspace_service.h"
-#include "brave/browser/workspace/brave_workspace_service_factory.h"
-#include "brave/browser/workspace/features.h"
+#include "brave/browser/ui/workspace/brave_workspace.h"
+#include "brave/browser/ui/workspace/brave_workspace_service.h"
+#include "brave/browser/ui/workspace/brave_workspace_service_factory.h"
+#include "brave/browser/ui/workspace/features.h"
 #include "brave/components/ai_chat/core/common/buildflags/buildflags.h"
 #include "brave/components/brave_news/common/buildflags/buildflags.h"
 #include "brave/components/brave_rewards/core/rewards_util.h"
@@ -831,10 +830,16 @@ bool BraveBrowserCommandController::ExecuteBraveCommandWithDisposition(
       brave::ToggleFocusMode(base::to_address(browser_));
       break;
     case IDC_SAVE_WORKSPACE:
-      brave::ShowSaveWorkspaceDialog(browser_->profile());
+      if (auto* svc = BraveWorkspaceServiceFactory::GetForProfile(
+              browser_->profile())) {
+        svc->ShowSaveWorkspaceDialog();
+      }
       break;
     case IDC_OPEN_WORKSPACE:
-      brave::ShowOpenWorkspaceDialog(browser_->profile());
+      if (auto* svc = BraveWorkspaceServiceFactory::GetForProfile(
+              browser_->profile())) {
+        svc->ShowOpenWorkspaceDialog();
+      }
       break;
     default:
       LOG(WARNING) << "Received Unimplemented Command: " << id;
