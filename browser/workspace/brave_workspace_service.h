@@ -3,8 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#ifndef BRAVE_BROWSER_UI_WORKSPACE_BRAVE_WORKSPACE_SERVICE_H_
-#define BRAVE_BROWSER_UI_WORKSPACE_BRAVE_WORKSPACE_SERVICE_H_
+#ifndef BRAVE_BROWSER_WORKSPACE_BRAVE_WORKSPACE_SERVICE_H_
+#define BRAVE_BROWSER_WORKSPACE_BRAVE_WORKSPACE_SERVICE_H_
 
 #include <memory>
 #include <string>
@@ -16,7 +16,7 @@
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/time/time.h"
-#include "brave/browser/ui/workspace/brave_workspace.h"
+#include "brave/browser/workspace/brave_workspace.h"
 #include "components/keyed_service/core/keyed_service.h"
 #include "components/sessions/core/command_storage_backend.h"
 #include "components/sessions/core/command_storage_manager.h"
@@ -152,4 +152,4 @@ class BraveWorkspaceService : public KeyedService {
   base::WeakPtrFactory<BraveWorkspaceService> weak_ptr_factory_{this};
 };
 
-#endif  // BRAVE_BROWSER_UI_WORKSPACE_BRAVE_WORKSPACE_SERVICE_H_
+#endif  // BRAVE_BROWSER_WORKSPACE_BRAVE_WORKSPACE_SERVICE_H_

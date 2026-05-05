@@ -23,9 +23,8 @@ static_library("workspace") {
   ]
 
   deps = [
-    # uncommenting causes circular dependency lol
-    #"//chrome/browser",
-    #"//chrome/browser/ui",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/browser_window",
     "//chrome/browser/profiles:profile",
     "//components/pref_registry",
   ]
