@@ -20,6 +20,7 @@ class QuickViewController: UIViewController {
   private var currentTab: (any TabState)?
   private let privateBrowsingManager: PrivateBrowsingManager
   private let toolbarViewModel: QuickViewToolbarModel
+  private var readerModeHandler: ReaderModeScriptHandler?
   private lazy var toolbarHostingController = UIHostingController(
     rootView: QuickViewToolbarView(viewModel: toolbarViewModel)
   )
@@ -61,8 +62,12 @@ class QuickViewController: UIViewController {
     let tab = TabStateFactory.create(
       with: .init(profile: parentTab.profile, initialConfiguration: initialConfiguration)
     )
-    tab.createWebView()
+    if !FeatureList.kUseProfileWebViewConfiguration.enabled {
+      tab.browserData = TabBrowserData(tab: tab)
+    }
     tab.addObserver(toolbarViewModel)
+    tab.addObserver(self)
+    tab.createWebView()
     tab.delegate = self
     let braveShieldsTabHelper: BraveShieldsTabHelper = .init(
       tab: tab,
@@ -107,13 +112,13 @@ class QuickViewController: UIViewController {
       case .forward:
         guard let currentTab = self?.currentTab else { return }
         currentTab.goForward()
-      case .shield, .refresh, .playlist, .readerMode,
+      case .readerMode:
+        self?.toggleReaderMode()
+      case .shield, .refresh, .playlist,
         .translate, .share, .openTab:
         break
       }
     }
-    // TODO: https://github.com/brave/brave-browser/issues/53567
-    toolbarViewModel.secondaryTopButton = .playlist
   }
 
   private func setupUI() {
@@ -139,6 +144,87 @@ class QuickViewController: UIViewController {
       $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
     }
   }
+
+  private func toggleReaderMode() {
+    guard let tab = currentTab else { return }
+    let isActive: Bool
+    if FeatureList.kUseProfileWebViewConfiguration.enabled {
+      isActive = tab.readerMode?.state == .active
+    } else {
+      isActive = readerModeHandler?.state == .active
+    }
+    isActive ? disableReaderMode() : enableReaderMode()
+  }
+
+  private func enableReaderMode() {
+    guard let tab = currentTab,
+      let backForwardList = tab.backForwardList,
+      let currentURL = backForwardList.currentItem?.url,
+      !InternalURL.isValid(url: currentURL)
+    else { return }
+
+    let headers =
+      (tab.responses?[currentURL] as? HTTPURLResponse)?.allHeaderFields as? [String: String]
+    guard
+      let readerModeURL = currentURL.encodeEmbeddedInternalURL(for: .readermode, headers: headers)
+    else { return }
+
+    let readerModeCache = ReaderModeScriptHandler.cache(for: tab)
+
+    if FeatureList.kUseProfileWebViewConfiguration.enabled {
+      if let readabilityResult = tab.readerMode?.readabilityResult {
+        Task { @MainActor in
+          try? await readerModeCache.put(currentURL, readabilityResult)
+          tab.loadRequest(PrivilegedRequest(url: readerModeURL) as URLRequest)
+        }
+      }
+    } else {
+      tab.evaluateJavaScript(
+        functionName: "\(readerModeNamespace).readerize",
+        contentWorld: ReaderModeScriptHandler.scriptSandbox
+      ) { [weak tab] (object, error) in
+        guard let tab else { return }
+        if let readabilityResult = ReadabilityResult(object: object as AnyObject?) {
+          Task { @MainActor in
+            try? await readerModeCache.put(currentURL, readabilityResult)
+            tab.loadRequest(PrivilegedRequest(url: readerModeURL) as URLRequest)
+          }
+        }
+      }
+    }
+  }
+
+  private func disableReaderMode() {
+    guard let tab = currentTab,
+      let backForwardList = tab.backForwardList,
+      let currentURL = backForwardList.currentItem?.url,
+      let originalURL = currentURL.decodeEmbeddedInternalURL(for: .readermode)
+    else { return }
+
+    tab.loadRequest(URLRequest(url: originalURL))
+  }
+
+  private func checkReaderMode(for tab: some TabState) {
+    guard let url = tab.visibleURL,
+      !url.isNewTabURL,
+      !InternalURL.isValid(url: url) || url.isInternalURL(for: .readermode),
+      !url.isFileURL
+    else { return }
+
+    if FeatureList.kUseProfileWebViewConfiguration.enabled {
+      if let readerMode = tab.readerMode {
+        Task { @MainActor [weak self] in
+          await readerMode.checkReadability()
+          self?.toolbarViewModel.updateReaderModeState(readerMode.state)
+        }
+      }
+    } else {
+      tab.evaluateJavaScript(
+        functionName: "\(readerModeNamespace).checkReadability",
+        contentWorld: ReaderModeScriptHandler.scriptSandbox
+      )
+    }
+  }
 }
 
 // MARK: - TabDelegate
@@ -153,5 +239,44 @@ extension QuickViewController: TabDelegate {
       self?.onOpenInNewTab?(request)
     }
     return nil
+  }
+}
+
+// MARK: - TabObserver
+extension QuickViewController: TabObserver {
+  func tabDidCreateWebView(_ tab: some TabState) {
+    if FeatureList.kUseProfileWebViewConfiguration.enabled {
+      tab.readerMode = .init(tab: tab)
+    } else {
+      let handler = ReaderModeScriptHandler()
+      readerModeHandler = handler
+      tab.browserData?.addContentScript(
+        handler,
+        name: ReaderModeScriptHandler.scriptName,
+        contentWorld: ReaderModeScriptHandler.scriptSandbox
+      )
+      readerModeHandler?.delegate = toolbarViewModel
+    }
+  }
+
+  func tabDidFinishNavigation(_ tab: some TabState) {
+    checkReaderMode(for: tab)
+  }
+
+  func tabDidTitleChange(_ tab: some TabState) {
+    checkReaderMode(for: tab)
+  }
+
+  func tabDidUpdateURL(_ tab: some TabState) {
+    checkReaderMode(for: tab)
+  }
+
+  func tabWillBeDestroyed(_ tab: some TabState) {
+    tab.removeObserver(self)
+  }
+
+  func tab(_ tab: some TabState, frameDidBecomeAvailable frame: WebFrame) {
+    guard frame.isMainFrame else { return }
+    checkReaderMode(for: tab)
   }
 }
