@@ -43,6 +43,11 @@ const string kDeepResearchToolName = "deep_research";
 // Tool artifact types
 const string kLineChartArtifactType = "line_chart";
 
+// Carries a JSON array of HTTPS URL strings that the tool's output
+// references. The conversation UI uses this to permit the assistant's reply
+// to render those URLs as anchors. Not rendered visually.
+const string kTrustedLinksArtifactType = "trusted_links";
+
 // Maximum length for memory and customization records.
 const int32 kMaxMemoryRecordLength = 512;
 

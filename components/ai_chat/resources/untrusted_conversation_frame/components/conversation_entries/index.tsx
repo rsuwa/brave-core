@@ -312,6 +312,32 @@ function ConversationEntries(props: { scrollToBottom: () => void }) {
       ? getToolArtifacts(group)
       : null
 
+    // Trusted-links artifacts are flattened across the whole group because
+    // a client-side tool call lives in a separate assistant entry from the
+    // follow-up response that references the tool's URLs. Without this, the
+    // response's anchors would be filtered out by MarkdownRenderer since the
+    // trust-list lives on the tool_use_event in the prior entry.
+    // (sourcesEvent stays per-entry below -- web search citations belong to
+    // the specific response that produced them.)
+    const groupTrustedLinks: string[] = group.flatMap((entry) => {
+      const events = (entry.edits?.at(-1) ?? entry).events ?? []
+      return events.flatMap(
+        (event) =>
+          event.toolUseEvent?.artifacts
+            ?.filter((a) => a.type === Mojom.TRUSTED_LINKS_ARTIFACT_TYPE)
+            .flatMap((a) => {
+              try {
+                const parsed: unknown = JSON.parse(a.contentJson)
+                return Array.isArray(parsed)
+                  ? parsed.filter((u): u is string => typeof u === 'string')
+                  : []
+              } catch {
+                return []
+              }
+            }) ?? [],
+      )
+    })
+
     return (
       <div key={firstEntryEdit.uuid || entryNumber}>
         <div
@@ -336,15 +362,17 @@ function ConversationEntries(props: { scrollToBottom: () => void }) {
                 const isActiveEntryInActiveGroup =
                   isActiveGroup && i === group.length - 1
                 const currentEntryEdit = entry.edits?.at(-1) ?? entry
-                const allowedLinksForEntry: string[] =
-                  currentEntryEdit.events?.flatMap(
+                const entryText = getCompletion(currentEntryEdit)
+                const hasReasoning = entryText.includes('<think>')
+                const allowedLinksForEntry: string[] = [
+                  ...(currentEntryEdit.events?.flatMap(
                     (event) =>
                       event.sourcesEvent?.sources?.map(
                         (source) => source.url.url,
-                      ) || [],
-                  ) || []
-                const entryText = getCompletion(currentEntryEdit)
-                const hasReasoning = entryText.includes('<think>')
+                      ) ?? [],
+                  ) ?? []),
+                  ...groupTrustedLinks,
+                ]
 
                 return (
                   <React.Fragment key={entry.uuid || i}>

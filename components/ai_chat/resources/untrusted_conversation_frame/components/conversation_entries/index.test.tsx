@@ -135,6 +135,119 @@ describe('ConversationEntries allowedLinks per response', () => {
       'https://b.com',
     ])
   })
+
+  it('contributes trusted_links artifact URLs to allowedLinks', () => {
+    const assistantTurnWithToolUse = {
+      characterType: Mojom.CharacterType.ASSISTANT,
+      events: [
+        {
+          toolUseEvent: {
+            toolName: 'semantic_history_search',
+            id: 'tool_id_1',
+            argumentsJson: '{}',
+            output: [],
+            artifacts: [
+              {
+                id: null,
+                type: Mojom.TRUSTED_LINKS_ARTIFACT_TYPE,
+                contentJson: JSON.stringify([
+                  'https://example.com/one',
+                  'https://example.com/two',
+                ]),
+              },
+            ],
+            permissionChallenge: null,
+            isServerResult: false,
+          },
+        },
+      ],
+    }
+    const assistantTurnWithReply = {
+      characterType: Mojom.CharacterType.ASSISTANT,
+      events: [{ completionEvent: { completion: 'Here are the pages.' } }],
+    }
+    render(
+      <MockContext
+        overrides={mockOverrides}
+        initialState={{
+          conversationHistory: [
+            humanTurn1,
+            assistantTurnWithToolUse,
+            assistantTurnWithReply,
+          ] as any,
+        }}
+      >
+        <ConversationEntries />
+      </MockContext>,
+    )
+    expect(assistantResponseMock).toHaveBeenCalledTimes(2)
+    // Both entries in the group see the tool's trusted links.
+    expect(assistantResponseMock.mock.calls[0][0]?.allowedLinks).toEqual([
+      'https://example.com/one',
+      'https://example.com/two',
+    ])
+    expect(assistantResponseMock.mock.calls[1][0]?.allowedLinks).toEqual([
+      'https://example.com/one',
+      'https://example.com/two',
+    ])
+  })
+
+  it('ignores trusted_links artifacts with non-array or invalid JSON', () => {
+    const assistantTurnWithBadArtifact = {
+      characterType: Mojom.CharacterType.ASSISTANT,
+      events: [
+        {
+          toolUseEvent: {
+            toolName: 'semantic_history_search',
+            id: 'tool_id_1',
+            argumentsJson: '{}',
+            output: [],
+            artifacts: [
+              {
+                id: null,
+                type: Mojom.TRUSTED_LINKS_ARTIFACT_TYPE,
+                contentJson: 'not valid json',
+              },
+              {
+                id: null,
+                type: Mojom.TRUSTED_LINKS_ARTIFACT_TYPE,
+                contentJson: JSON.stringify({ not: 'an array' }),
+              },
+              {
+                id: null,
+                type: Mojom.TRUSTED_LINKS_ARTIFACT_TYPE,
+                contentJson: JSON.stringify([
+                  'https://example.com/ok',
+                  42,
+                  null,
+                ]),
+              },
+            ],
+            permissionChallenge: null,
+            isServerResult: false,
+          },
+        },
+      ],
+    }
+    render(
+      <MockContext
+        overrides={mockOverrides}
+        initialState={{
+          conversationHistory: [
+            humanTurn1,
+            assistantTurnWithBadArtifact,
+          ] as any,
+        }}
+      >
+        <ConversationEntries />
+      </MockContext>,
+    )
+    expect(assistantResponseMock).toHaveBeenCalledTimes(1)
+    // Bad JSON / non-array / non-string elements are filtered out.
+    expect(assistantResponseMock.mock.calls[0][0]?.allowedLinks).toEqual([
+      'https://example.com/ok',
+    ])
+  })
 })
 
 describe('conversation entries', () => {
