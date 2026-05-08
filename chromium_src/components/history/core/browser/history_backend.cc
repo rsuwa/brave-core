@@ -7,9 +7,21 @@
 
 namespace history {
 
+namespace {
+
+constexpr int kKeepHistoryForever = -1;
+
+}  // namespace
+
 HistoryCountResult HistoryBackend::GetKnownToSyncCount() {
   int count = 0;
   return {db_ && db_->GetKnownToSyncCount(&count), count};
+}
+
+void HistoryBackend::UpdateExpireDaysThreshold(int days) {
+  expirer_.StartExpiringOldStuff(days == kKeepHistoryForever
+                                     ? base::TimeDelta::Max()
+                                     : base::Days(days));
 }
 
 }  // namespace history

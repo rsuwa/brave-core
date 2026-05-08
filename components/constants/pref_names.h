@@ -101,6 +101,8 @@ inline constexpr char kTabMuteIndicatorNotClickable[] =
     "brave.tabs.mute_indicator_not_clickable";
 inline constexpr char kDontAskForCrashReporting[] =
     "brave.dont_ask_for_crash_reporting";
+// Number of days to retain browsing history. -1 keeps history forever.
+inline constexpr char kHistoryRetentionDays[] = "brave.history.retention_days";
 
 // Cast extension requires a browser restart once the setting is toggled.
 // kEnableMediaRouterOnRestart is used as a proxy to identify the current

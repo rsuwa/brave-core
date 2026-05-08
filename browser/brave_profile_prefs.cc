@@ -426,6 +426,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
 
   registry->RegisterBooleanPref(kShieldsStatsBadgeVisible, true);
   registry->RegisterBooleanPref(kGoogleLoginControlType, true);
+  registry->RegisterIntegerPref(kHistoryRetentionDays, 90);
   registry->RegisterBooleanPref(
       query_filter::kTrackingQueryParametersFilteringEnabled, true);
   registry->RegisterBooleanPref(

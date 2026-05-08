@@ -6,6 +6,10 @@
 #ifndef BRAVE_CHROMIUM_SRC_COMPONENTS_HISTORY_CORE_BROWSER_HISTORY_SERVICE_H_
 #define BRAVE_CHROMIUM_SRC_COMPONENTS_HISTORY_CORE_BROWSER_HISTORY_SERVICE_H_
 
+#include "components/prefs/pref_member.h"
+
+class PrefService;
+
 class BraveHistoryURLProviderTest;
 class BraveHistoryQuickProviderTest;
 
@@ -18,6 +22,9 @@ class BraveHistoryQuickProviderTest;
 #define AddRelatedSearchesForVisit                                     \
   GetKnownToSyncCount(                                                 \
       base::OnceCallback<void(history::HistoryCountResult)> callback); \
+  void InitHistoryRetentionPref(PrefService* prefs);                   \
+  void OnHistoryRetentionDaysChanged();                                \
+  IntegerPrefMember history_retention_days_;                           \
   void AddRelatedSearchesForVisit
 
 #include <components/history/core/browser/history_service.h>  // IWYU pragma: export

@@ -317,6 +317,8 @@ const PrefsUtil::TypedPrefMap& BravePrefsUtil::GetAllowlistedKeys() {
 #endif
   (*s_brave_allowlist)[prefs::kWebRTCIPHandlingPolicy] =
       settings_api::PrefType::kString;
+  (*s_brave_allowlist)[kHistoryRetentionDays] =
+      settings_api::PrefType::kNumber;
   // Request OTR feature
   (*s_brave_allowlist)[request_otr::kRequestOTRActionOption] =
       settings_api::PrefType::kNumber;
