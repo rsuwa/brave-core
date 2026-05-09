@@ -27,6 +27,7 @@ source_set("internal") {
 
   if (enable_playlist) {
     deps += [
+      "//brave/components/brave_playlist/browser",
       "//brave/components/playlist/core/browser",
       "//brave/components/playlist/core/common",
     ]

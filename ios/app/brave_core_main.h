@@ -13,6 +13,7 @@
 @class BraveP3AUtils;
 @class AdblockService;
 @class HTTPSUpgradeExceptionsService;
+@class BravePlaylistExceptionsIOS;
 @class BraveUserAgentExceptionsIOS;
 @class BraveProfileController;
 @protocol PrefServiceBridge;
@@ -37,6 +38,8 @@ OBJC_EXPORT
 
 @property(nonatomic, readonly)
     HTTPSUpgradeExceptionsService* httpsUpgradeExceptionsService;
+
+@property(nonatomic, readonly) BravePlaylistExceptionsIOS* bravePlaylistExceptions;
 
 @property(nonatomic, readonly, nullable)
     BraveUserAgentExceptionsIOS* braveUserAgentExceptions;

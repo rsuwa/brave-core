@@ -1,0 +1,31 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+static_library("browser") {
+  sources = [
+    "playlist_exceptions.cc",
+    "playlist_exceptions.h",
+  ]
+
+  deps = [
+    "//base",
+    "//brave/components/brave_component_updater/browser:public",
+    "//net",
+    "//url",
+  ]
+}
+
+if (!is_ios) {
+  source_set("unit_tests") {
+    testonly = true
+    sources = [ "playlist_exceptions_unittest.cc" ]
+    deps = [
+      "//base",
+      "//base/test:test_support",
+      "//brave/components/brave_playlist/browser",
+      "//testing/gtest",
+    ]
+  }
+}

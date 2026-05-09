@@ -24,6 +24,7 @@
 #include "base/path_service.h"
 #include "base/strings/sys_string_conversions.h"
 #include "base/threading/thread_restrictions.h"
+#include "brave/components/brave_playlist/browser/playlist_exceptions.h"
 #include "brave/components/brave_user_agent/browser/brave_user_agent_exceptions.h"
 #include "brave/components/p3a/component_installer.h"
 #include "brave/components/p3a/histograms_braveizer.h"
@@ -33,6 +34,7 @@
 #include "brave/ios/app/brave_profile_controller+private.h"
 #include "brave/ios/app/brave_profile_controller.h"
 #include "brave/ios/browser/api/brave_shields/adblock_service+private.h"
+#include "brave/ios/browser/api/brave_playlist/playlist_exceptions_ios+private.h"
 #include "brave/ios/browser/api/brave_user_agent/brave_user_agent_exceptions_ios+private.h"
 #include "brave/ios/browser/api/https_upgrade_exceptions/https_upgrade_exceptions_service+private.h"
 #include "brave/ios/browser/api/p3a/brave_p3a_utils+private.h"
@@ -81,6 +83,7 @@ const BraveCoreLogSeverity BraveCoreLogSeverityVerbose =
 @property(nonatomic) BraveP3AUtils* p3aUtils;
 @property(nonatomic)
     HTTPSUpgradeExceptionsService* httpsUpgradeExceptionsService;
+@property(nonatomic) BravePlaylistExceptionsIOS* bravePlaylistExceptions;
 @property(nonatomic) BraveUserAgentExceptionsIOS* braveUserAgentExceptions;
 @end
 
@@ -286,6 +289,15 @@ static bool CustomLogHandler(int severity,
         [[HTTPSUpgradeExceptionsService alloc] init];
   }
   return _httpsUpgradeExceptionsService;
+}
+
+- (BravePlaylistExceptionsIOS*)bravePlaylistExceptions {
+  if (!_bravePlaylistExceptions) {
+    _bravePlaylistExceptions = [[BravePlaylistExceptionsIOS alloc]
+        initWithPlaylistExceptions:brave_playlist::PlaylistExceptions::
+                                     GetInstance()];
+  }
+  return _bravePlaylistExceptions;
 }
 
 - (BraveUserAgentExceptionsIOS*)braveUserAgentExceptions {
