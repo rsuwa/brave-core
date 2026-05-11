@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/page_action/page_action_controller.cc b/chrome/browser/ui/views/page_action/page_action_controller.cc
-index 41aa9c0770297d43d3e3ad40c228341fa83b2e83..62885b8e676a788862f1f9e241b44e7243bdeef6 100644
+index 41aa9c0770297d43d3e3ad40c228341fa83b2e83..b79e479de0f53edc233e9a79d053aa3d4bdffda0 100644
 --- a/chrome/browser/ui/views/page_action/page_action_controller.cc
 +++ b/chrome/browser/ui/views/page_action/page_action_controller.cc
 @@ -73,6 +73,7 @@ void ScopedPageActionActivity::RegisterWillDestroyControllerCallback() {
@@ -19,6 +19,33 @@ index 41aa9c0770297d43d3e3ad40c228341fa83b2e83..62885b8e676a788862f1f9e241b44e72
    }
  }
  
+@@ -454,7 +455,7 @@ PageActionControllerImpl::CreatePageMetricsRecorder(
+ }
+ 
+ base::RepeatingCallback<void(PageActionTrigger)>
+-PageActionControllerImpl::GetClickCallback(base::PassKey<PageActionView>,
++PageActionControllerImpl::GetClickCallback(base::PassKey<page_actions::PageActionView>,
+                                            actions::ActionId action_id) {
+   return base::BindRepeating(&PageActionControllerImpl::RecordClickMetric,
+                              weak_factory_.GetWeakPtr(), action_id);
+@@ -471,7 +472,7 @@ void PageActionControllerImpl::RecordClickMetric(
+ 
+ base::RepeatingClosure
+ PageActionControllerImpl::GetAnchoredMessageCloseCallback(
+-    base::PassKey<PageActionView>,
++    base::PassKey<page_actions::PageActionView>,
+     actions::ActionId action_id) {
+   return base::BindRepeating(&PageActionControllerImpl::HideAnchoredMessage,
+                              base::Unretained(this), action_id);
+@@ -495,7 +496,7 @@ PageActionControllerImpl::RegisterOnWillDestroyCallback(
+ }
+ 
+ void PageActionControllerImpl::RegisterCallbacks(
+-    base::PassKey<PageActionView>,
++    base::PassKey<page_actions::PageActionView>,
+     actions::ActionId action_id,
+     PageActionView* page_action_view) {
+   CHECK(page_action_view);
 @@ -513,6 +514,7 @@ void PageActionControllerImpl::OnIsChipShowingChanged(
    FindPageActionModel(action_id).SetIsChipShowing(PassKey(), is_chip_showing);
  }
