@@ -30,14 +30,14 @@ enum QuickViewButtonState {
 class QuickViewToolbarModel {
   var url: URL
   var secondaryTopButton: QuickViewActionButton?
-  var buttonStates: [QuickViewActionButton: QuickViewButtonState] = [
-    .shield: .normal,
-    .back: .disabled,
-    .forward: .disabled,
-  ]
   var isLoading: Bool = true
   var loadingProgress: Double = 0.0
   var onActionButton: ((QuickViewActionButton) -> Void)?
+  private var buttonStates: [QuickViewActionButton: QuickViewButtonState] = [
+    .shield: .active,
+    .back: .disabled,
+    .forward: .disabled,
+  ]
 
   init(
     url: URL,
@@ -126,5 +126,9 @@ extension QuickViewToolbarModel: ReaderModeScriptHandlerDelegate {
         buttonStates.removeValue(forKey: .readerMode)
       }
     }
+  }
+
+  func updateShieldingState(_ isEnabled: Bool) {
+    buttonStates[.shield] = isEnabled ? .active : .disabled
   }
 }

@@ -10,8 +10,20 @@ import SwiftUI
 import UIKit
 import Web
 
+struct InvisibleUIView: UIViewRepresentable {
+  let uiView = UIView()
+  func makeUIView(context: Context) -> UIView {
+    uiView.backgroundColor = .clear
+    return uiView
+  }
+  func updateUIView(_ uiView: UIView, context: Context) {
+  }
+}
+
 struct QuickViewToolbarView: View {
   let viewModel: QuickViewToolbarModel
+  /// An invisible `UIView` background lives in SwiftUI for UIKit API to reference later
+  var shieldBackgroundView: InvisibleUIView = .init()
 
   var body: some View {
     VStack(spacing: 0) {
@@ -113,6 +125,7 @@ struct QuickViewToolbarView: View {
   private var topRow: some View {
     HStack(alignment: .top, spacing: 8) {
       shieldButton
+        .background(shieldBackgroundView)
 
       VStack(spacing: 12) {
         addressView
