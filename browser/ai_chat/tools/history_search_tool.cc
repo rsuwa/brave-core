@@ -109,6 +109,11 @@ HistorySearchTool::HistorySearchTool(content::BrowserContext* browser_context)
 
 HistorySearchTool::~HistorySearchTool() = default;
 
+void HistorySearchTool::SetSearchForTesting(
+    history_embeddings::HistoryEmbeddingsSearch* search) {
+  search_for_testing_ = search;
+}
+
 std::string_view HistorySearchTool::Name() const {
   return kToolName;
 }
@@ -210,7 +215,9 @@ void HistorySearchTool::UseTool(const std::string& input_json,
 
   // Defense in depth: the tool is only published when the flag is on, but
   // re-check here in case the flag flipped between advertisement and use.
-  if (!history_embeddings::IsHistoryEmbeddingsEnabledForProfile(profile_)) {
+  // Tests that inject a fake search interface bypass this gate.
+  if (!search_for_testing_ &&
+      !history_embeddings::IsHistoryEmbeddingsEnabledForProfile(profile_)) {
     std::move(callback).Run(
         CreateContentBlocksForText(
             "Error: history embeddings is not enabled for this profile"),
@@ -218,7 +225,10 @@ void HistorySearchTool::UseTool(const std::string& input_json,
     return;
   }
 
-  auto* service = HistoryEmbeddingsServiceFactory::GetForProfile(profile_);
+  history_embeddings::HistoryEmbeddingsSearch* service =
+      search_for_testing_
+          ? search_for_testing_.get()
+          : HistoryEmbeddingsServiceFactory::GetForProfile(profile_);
   if (!service) {
     std::move(callback).Run(
         CreateContentBlocksForText(
