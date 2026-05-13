@@ -16,6 +16,10 @@ struct CxxPolkadotChainMetadataFields {
     transfer_allow_death_call_index: u8,
     transfer_keep_alive_call_index: u8,
     transfer_all_call_index: u8,
+    assets_pallet_index: u8,
+    assets_transfer_all_call_index: u8,
+    assets_transfer_keep_alive_call_index: u8,
+    has_assets_pallet: bool,
     ss58_prefix: u16,
     spec_version: u32,
     asset_tx_payment: bool,
@@ -44,6 +48,10 @@ mod ffi {
         fn transfer_allow_death_call_index(self: &CxxPolkadotChainMetadataFields) -> u8;
         fn transfer_keep_alive_call_index(self: &CxxPolkadotChainMetadataFields) -> u8;
         fn transfer_all_call_index(self: &CxxPolkadotChainMetadataFields) -> u8;
+        fn assets_pallet_index(self: &CxxPolkadotChainMetadataFields) -> u8;
+        fn assets_transfer_all_call_index(self: &CxxPolkadotChainMetadataFields) -> u8;
+        fn assets_transfer_keep_alive_call_index(self: &CxxPolkadotChainMetadataFields) -> u8;
+        fn has_assets_pallet(self: &CxxPolkadotChainMetadataFields) -> bool;
         fn ss58_prefix(self: &CxxPolkadotChainMetadataFields) -> u16;
         fn spec_version(self: &CxxPolkadotChainMetadataFields) -> u32;
         fn asset_tx_payment(self: &CxxPolkadotChainMetadataFields) -> bool;
@@ -73,6 +81,22 @@ impl CxxPolkadotChainMetadataFields {
 
     fn transfer_all_call_index(self: &CxxPolkadotChainMetadataFields) -> u8 {
         self.transfer_all_call_index
+    }
+
+    fn assets_pallet_index(self: &CxxPolkadotChainMetadataFields) -> u8 {
+        self.assets_pallet_index
+    }
+
+    fn assets_transfer_all_call_index(self: &CxxPolkadotChainMetadataFields) -> u8 {
+        self.assets_transfer_all_call_index
+    }
+
+    fn assets_transfer_keep_alive_call_index(self: &CxxPolkadotChainMetadataFields) -> u8 {
+        self.assets_transfer_keep_alive_call_index
+    }
+
+    fn has_assets_pallet(self: &CxxPolkadotChainMetadataFields) -> bool {
+        self.has_assets_pallet
     }
 
     fn ss58_prefix(self: &CxxPolkadotChainMetadataFields) -> u16 {
@@ -277,10 +301,9 @@ fn parse_pallet(input: &mut &[u8], has_pallet_docs: bool) -> Result<PalletInfo, 
     let name: String = decode_scale(input)?;
 
     // storage: Option<PalletStorageMetadata>
-    let _storage = decode_option(input, |input| {
+    decode_option(input, |input| {
         let _: String = decode_scale(input)?; // prefix
-        let _ = decode_vec(input, parse_storage_entry)?;
-        Ok(())
+        decode_vec(input, parse_storage_entry)
     })?;
 
     // calls: Option<PalletCallMetadata { ty: u32 }>
@@ -437,6 +460,8 @@ fn parse_extrinsic_metadata(input: &mut &[u8], version: u8) -> Result<bool, Erro
 ///   - `transfer_allow_death` call index
 ///   - `System.SS58Prefix`
 ///   - `System.Version.spec_version`
+///   - `Assets` pallet index and transfer call indexes when the pallet is
+///     present
 ///   - whether `ChargeAssetTxPayment` is a signed extension
 ///
 /// References:
@@ -477,6 +502,19 @@ fn parse_chain_metadata_fields(bytes: &[u8]) -> Result<CxxPolkadotChainMetadata,
     let transfer_all_call_index =
         get_call_index(&portable_registry, balances_pallet, "transferall")?;
 
+    let mut assets_pallet_index = 0;
+    let mut assets_transfer_all_call_index = 0;
+    let mut assets_transfer_keep_alive_call_index = 0;
+    let mut has_assets_pallet = false;
+    if let Some(assets_pallet) = pallets.iter().find(|p| normalize_ident(&p.name) == "assets") {
+        has_assets_pallet = true;
+        assets_pallet_index = assets_pallet.index;
+        assets_transfer_all_call_index =
+            get_call_index(&portable_registry, assets_pallet, "transferall")?;
+        assets_transfer_keep_alive_call_index =
+            get_call_index(&portable_registry, assets_pallet, "transferkeepalive")?;
+    }
+
     let system_pallet = pallets
         .iter()
         .find(|p| normalize_ident(&p.name) == "system")
@@ -511,6 +549,10 @@ fn parse_chain_metadata_fields(bytes: &[u8]) -> Result<CxxPolkadotChainMetadata,
         transfer_allow_death_call_index,
         transfer_keep_alive_call_index,
         transfer_all_call_index,
+        assets_pallet_index,
+        assets_transfer_all_call_index,
+        assets_transfer_keep_alive_call_index,
+        has_assets_pallet,
         ss58_prefix,
         spec_version,
         asset_tx_payment,
@@ -528,6 +570,10 @@ fn parse_chain_metadata_from_scale(
             transfer_allow_death_call_index: metadata.transfer_allow_death_call_index,
             transfer_keep_alive_call_index: metadata.transfer_keep_alive_call_index,
             transfer_all_call_index: metadata.transfer_all_call_index,
+            assets_pallet_index: metadata.assets_pallet_index,
+            assets_transfer_all_call_index: metadata.assets_transfer_all_call_index,
+            assets_transfer_keep_alive_call_index: metadata.assets_transfer_keep_alive_call_index,
+            has_assets_pallet: metadata.has_assets_pallet,
             ss58_prefix: metadata.ss58_prefix,
             spec_version: metadata.spec_version,
             asset_tx_payment: metadata.asset_tx_payment,
