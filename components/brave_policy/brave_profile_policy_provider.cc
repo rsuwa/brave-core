@@ -7,7 +7,6 @@
 
 #include <utility>
 
-#include "base/logging.h"
 #include "base/values.h"
 #include "brave/components/brave_origin/brave_origin_utils.h"
 #include "brave/components/brave_policy/ad_block_only_mode/ad_block_only_mode_policy_manager.h"
@@ -48,6 +47,17 @@ void BraveProfilePolicyProvider::RefreshPolicies(
   first_policies_loaded_ = true;
 
   UpdatePolicy(std::move(bundle));
+}
+
+bool BraveProfilePolicyProvider::IsInitializationComplete(
+    policy::PolicyDomain domain) const {
+  // Defer reporting initialization until our first refresh has actually pushed
+  // a bundle into the policy service. The base class default returns true
+  // unconditionally, which lets consumers of
+  // `PolicyService::IsInitializationComplete` observe an empty managed pref
+  // store before Brave-sourced policies (e.g. `BraveRewardsDisabled` from
+  // Brave Origin) have been merged.
+  return first_policies_loaded_;
 }
 
 bool BraveProfilePolicyProvider::IsFirstPolicyLoadComplete(

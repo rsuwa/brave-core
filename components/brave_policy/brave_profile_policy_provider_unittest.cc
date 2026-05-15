@@ -22,11 +22,7 @@ class BraveProfilePolicyProviderTest : public ::testing::Test {
   BraveProfilePolicyProviderTest() = default;
   ~BraveProfilePolicyProviderTest() override = default;
 
-  void TearDown() override {
-    if (provider_.IsInitializationComplete(policy::POLICY_DOMAIN_CHROME)) {
-      provider_.Shutdown();
-    }
-  }
+  void TearDown() override { provider_.Shutdown(); }
 
  protected:
   base::test::TaskEnvironment task_environment_;
