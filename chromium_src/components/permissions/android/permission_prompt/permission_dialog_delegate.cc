@@ -108,7 +108,21 @@ std::unique_ptr<PermissionDialogDelegate> PermissionDialogDelegate::Create(
 
 #define BRAVE_PERMISSION_DIALOG_DELEGATE_ACCEPT                               \
   java_delegate_->ApplyLifetimeToPermissionRequests(env, permission_prompt_); \
-  java_delegate_->ApplyDontAskAgainOption(env, permission_prompt_);
+  java_delegate_->ApplyDontAskAgainOption(env, permission_prompt_);           \
+  /* Brave's dialog has no accuracy selector, so prompt_options_ is        */ \
+  /* std::monostate. GeolocationPermissionResolver CHECKs that             */ \
+  /* GeolocationPromptOptions is present for GEOLOCATION_WITH_OPTIONS      */ \
+  /* requests, so default to kPrecise to preserve Brave's full-accuracy    */ \
+  /* behaviour. */                                                            \
+  if (std::holds_alternative<std::monostate>(prompt_options_) &&              \
+      !permission_prompt_->delegate_public()->Requests().empty() &&           \
+      permission_prompt_->delegate_public()                                   \
+              ->Requests()[0]                                                 \
+              ->GetContentSettingsType() ==                                   \
+          ContentSettingsType::GEOLOCATION_WITH_OPTIONS) {                    \
+    prompt_options_ = GeolocationPromptOptions{                               \
+        .selected_accuracy = GeolocationAccuracy::kPrecise};                  \
+  }
 #define BRAVE_PERMISSION_DIALOG_DELEGATE_CANCEL                               \
   java_delegate_->ApplyLifetimeToPermissionRequests(env, permission_prompt_); \
   java_delegate_->ApplyDontAskAgainOption(env, permission_prompt_);
