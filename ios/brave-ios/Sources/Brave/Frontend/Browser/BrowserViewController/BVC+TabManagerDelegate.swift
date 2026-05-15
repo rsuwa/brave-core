@@ -93,6 +93,7 @@ extension BrowserViewController: TabManagerDelegate {
 
     if FeatureList.kUseProfileWebViewConfiguration.enabled {
       tab.readerMode = .init(tab: tab)
+      tab.requestBlockingTabHelper = .init(tab: tab)
     }
 
     tab.braveTalk = .init(tab: tab, coordinator: braveTalkJitsiCoordinator)
