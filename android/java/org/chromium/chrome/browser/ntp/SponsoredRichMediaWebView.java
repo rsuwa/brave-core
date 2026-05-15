@@ -25,6 +25,7 @@ import org.chromium.content_public.browser.GlobalRenderFrameHostId;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.NavigationHandle;
 import org.chromium.content_public.browser.Page;
+import org.chromium.content_public.browser.Visibility;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.browser.WebContentsObserver;
 import org.chromium.net.NetId;
@@ -85,6 +86,34 @@ public class SponsoredRichMediaWebView {
         mWebView.attachWebContents(mWebContents, webContentView, null);
         Log.i(TAG, "ThinWebView created and WebContents attached.");
 
+        mWebView.getView()
+                .addOnAttachStateChangeListener(
+                        new View.OnAttachStateChangeListener() {
+                            @Override
+                            public void onViewAttachedToWindow(View v) {
+                                Log.i(
+                                        TAG,
+                                        "View attached to window," + " width=%d, height=%d.",
+                                        v.getWidth(),
+                                        v.getHeight());
+                            }
+
+                            @Override
+                            public void onViewDetachedFromWindow(View v) {
+                                Log.i(TAG, "View detached from window.");
+                            }
+                        });
+
+        mWebView.getView()
+                .addOnLayoutChangeListener(
+                        (v, l, t, r, b, ol, ot, or_, ob) -> {
+                            final int w = r - l;
+                            final int h = b - t;
+                            if (w != (or_ - ol) || h != (ob - ot)) {
+                                Log.i(TAG, "View layout changed, width=%d, height=%d.", w, h);
+                            }
+                        });
+
         mObserver =
                 new WebContentsObserver(mWebContents) {
                     @Override
@@ -127,10 +156,17 @@ public class SponsoredRichMediaWebView {
                         if (isInPrimaryMainFrame) {
                             Log.w(
                                     TAG,
-                                    "Navigation failed, errorCode=%d, url=%s.",
+                                    "Navigation failed in primary main frame,"
+                                            + " errorCode=%d, url=%s.",
                                     errorCode,
                                     failingUrl);
                             notifyFailure();
+                        } else {
+                            Log.w(
+                                    TAG,
+                                    "Navigation failed in subframe," + " errorCode=%d, url=%s.",
+                                    errorCode,
+                                    failingUrl);
                         }
                     }
 
@@ -138,6 +174,26 @@ public class SponsoredRichMediaWebView {
                     public void didFirstVisuallyNonEmptyPaint() {
                         Log.i(TAG, "First visually non-empty paint received.");
                         mHandler.removeCallbacks(mFirstPaintTimeout);
+                    }
+
+                    @Override
+                    public void didStopLoading(GURL url, boolean isKnownValid) {
+                        Log.i(TAG, "didStopLoading url=%s.", url);
+                    }
+
+                    @Override
+                    public void loadProgressChanged(float progress) {
+                        Log.i(TAG, "loadProgressChanged progress=%.2f.", progress);
+                    }
+
+                    @Override
+                    public void titleWasSet(String title) {
+                        Log.i(TAG, "titleWasSet title=%s.", title);
+                    }
+
+                    @Override
+                    public void onVisibilityChanged(@Visibility int visibility) {
+                        Log.i(TAG, "WebContents onVisibilityChanged visibility=%d.", visibility);
                     }
                 };
         Log.i(TAG, "WebContentsObserver registered.");
@@ -174,7 +230,12 @@ public class SponsoredRichMediaWebView {
     }
 
     private void notifyFailure() {
-        Log.w(TAG, "Notifying failure, hiding rich media background.");
+        Log.w(
+                TAG,
+                "Notifying failure, view width=%d, height=%d, attached=%b.",
+                mWebView.getView().getWidth(),
+                mWebView.getView().getHeight(),
+                mWebView.getView().isAttachedToWindow());
         mHandler.removeCallbacks(mFirstPaintTimeout);
         mOnFailure.run();
     }
