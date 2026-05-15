@@ -2691,12 +2691,12 @@ extension BrowserViewController: SearchViewControllerDelegate {
     return tabManager.selectedTab?.visibleURL?.isNewTabURL != true
   }
 
-  func searchViewControllerIsWidgetInitiatedSearchSession(_: SearchViewController) -> Bool {
-    tabManager.selectedTab?.widgetSearchTabHelper != nil
-  }
-
-  func searchViewControllerFinalizePendingWidgetSearch(_: SearchViewController) {
-    tabManager.selectedTab?.widgetSearchTabHelper?.finalize()
+  func searchViewController(
+    _: SearchViewController,
+    widgetAttributedSearchURLFor engine: OpenSearchEngine,
+    query: String
+  ) -> URL? {
+    tabManager.selectedTab?.searchURLWithWidgetAttribution(from: engine, query: query)
   }
 
   @objc private func dismissQuickSearchEngines() {
@@ -3132,16 +3132,22 @@ extension BrowserViewController {
       }
     }
 
-    let hasPendingWidgetSearch = tabManager.selectedTab?.widgetSearchTabHelper != nil
-    if let searchURL = engine?.searchURLForQuery(
-      text,
-      isBraveSearchPromotion: isBraveSearchPromotion,
-      isWidgetSearchAttribution: hasPendingWidgetSearch
-    ) {
+    let searchURL: URL?
+    if let tab = tabManager.selectedTab, let engine {
+      searchURL = tab.searchURLWithWidgetAttribution(
+        from: engine,
+        query: text,
+        isBraveSearchPromotion: isBraveSearchPromotion
+      )
+    } else {
+      searchURL = engine?.searchURLForQuery(
+        text,
+        isBraveSearchPromotion: isBraveSearchPromotion
+      )
+    }
+
+    if let searchURL {
       // We couldn't find a matching search keyword, so do a search query.
-      if hasPendingWidgetSearch {
-        tabManager.selectedTab?.widgetSearchTabHelper?.finalize()
-      }
       finishEditingAndSubmit(searchURL)
     } else {
       // We still don't have a valid URL, so something is broken. Give up.
