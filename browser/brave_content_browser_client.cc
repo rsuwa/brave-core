@@ -663,7 +663,8 @@ void BraveContentBrowserClient::RegisterTrustedWebUIInterfaceBrokers(
 #if BUILDFLAG(ENABLE_EMAIL_ALIASES)
   if (email_aliases::features::IsEmailAliasesEnabled()) {
     registry.ForWebUI<BraveSettingsUI>()
-        .Add<email_aliases::mojom::EmailAliasesService>();
+        .Add<email_aliases::mojom::EmailAliasesService>()
+        .Add<email_aliases::mojom::EmailAliasesMetrics>();
   }
 #endif
   if (brave_account::features::IsBraveAccountEnabled()) {
@@ -789,7 +790,6 @@ void BraveContentBrowserClient::RegisterTrustedWebUIInterfaceBrokers(
   if (email_aliases::features::IsEmailAliasesEnabled()) {
     registry.ForWebUI<EmailAliasesPanelUI>()
         .Add<email_aliases::mojom::EmailAliasesService>()
-        .Add<email_aliases::mojom::EmailAliasesMetrics>()
         .Add<email_aliases::mojom::EmailAliasesPanelHandler>();
   }
 #endif
