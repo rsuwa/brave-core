@@ -15,8 +15,8 @@ bool WindowFeatureController::NormalBrowserSupportsWindowFeature(
   if (feature == WindowFeature::kFeatureTitleBar) {
     // In case of vertical tab strip is allowed, we need to have ability to
     // show title bar on Windows.
-    return tabs::utils::ShouldShowBraveVerticalTabs(this) &&
-           tabs::utils::ShouldShowWindowTitleForVerticalTabs(this);
+    return tabs::utils::ShouldShowBraveVerticalTabs(&browser_.get()) &&
+           tabs::utils::ShouldShowWindowTitleForVerticalTabs(&browser_.get());
   }
 #endif
 
