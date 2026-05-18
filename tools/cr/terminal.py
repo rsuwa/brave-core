@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at https://mozilla.org/MPL/2.0/.
 
+from __future__ import annotations
+
 from contextlib import contextmanager
 import logging
 import platform
@@ -188,7 +190,8 @@ class Terminal:
             *,
             env: dict[str, str] | None = None,
             cwd=None,
-            interactive: bool = False):
+            interactive: bool = False,
+            stdin: str | None = None):
         """Runs a command on the terminal.
 
         When `interactive=True`, the subprocess inherits the parent's
@@ -196,6 +199,11 @@ class Terminal:
         spawning editors, pagers, or anything else that needs to take
         over the tty. The returned `CompletedProcess.stdout` /
         `.stderr` are `None` in that case (nothing is captured).
+
+        Pass `stdin=` to feed data into the subprocess's stdin. Captured
+        (non-interactive) mode encodes it with utf-8 to match the
+        captured streams; interactive mode rejects `stdin=` because the
+        subprocess owns the tty.
         """
         # Convert all arguments to strings, to avoid issues with `PurePath`
         # being passed arguments
@@ -240,11 +248,17 @@ class Terminal:
                                   text=True,
                                   encoding='utf-8')
 
+        if interactive and stdin is not None:
+            raise ValueError(
+                'terminal.run(): `stdin=` is not supported with '
+                '`interactive=True` (the subprocess owns the tty).')
+
         try:
             result = subprocess.run(cmd,
                                     check=True,
                                     env=env,
                                     cwd=cwd,
+                                    input=stdin,
                                     **capture_kwargs)
         except subprocess.CalledProcessError as e:
             if e.stderr:
